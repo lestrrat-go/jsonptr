@@ -2,6 +2,68 @@
 
 `github.com/lestrrat-go/jsonptr` is a tool that allows users to query and unmarshal JSON data using JSON Pointers (RFC6901). This modules does not support updating existing JSON data, and only supports querying / unmarshaling.
 
+# SYNOPSIS
+
+```go
+package jsonptr_test
+
+import (
+	"fmt"
+
+	"github.com/lestrrat-go/jsonptr"
+)
+
+func Example() {
+	const src = `
+	{
+		"a": 1,
+		"b": 2,
+		"c": {"d": 3, "e": 4},
+		"f": [
+			5,
+			6,
+			"g",
+			{
+				"h": 7
+			},
+			[
+				"i",
+				8,
+				9
+			]
+		]
+	}`
+	c, err := jsonptr.Parse([]byte(src))
+	if err != nil {
+		fmt.Printf("failed to parse JSON: %s", err)
+		return
+	}
+
+    // If you know the type of object beforehand, you can specify
+    // a strongly typed variable for a bit of added efficiency.
+    //
+    // This example only uses a simple `int`, but you can also use
+    // this method to intentionally trigger `UnmarshalJSON`
+    // to be called for that particular type, if it implements one.
+    var i int
+	if err := c.Unmarshal("/a", &i); err != nil {
+		fmt.Printf("failed to find /a: %s", err)
+		return
+	}
+	fmt.Printf("/a = %d\n", i)
+
+    // If you do not know the type of value before hand, you can
+    // just pass it an `interface{}`. In this case, it will populate
+    // `iface` with a `map[string]interface{}`
+    var iface interface{}
+   	if err := c.Unmarshal("/f", &iface); err != nil {
+		fmt.Printf("failed to find /f: %s", err)
+		return
+	}
+	fmt.Printf("/f = %#v\n", iface)
+}
+```
+
 # Motivation
 
 There are many implementations of RFC6901, but the fact that most of them immediately decoded the JSON value pointed by the pointer specification to a `map[string]interface{}` was problematic.

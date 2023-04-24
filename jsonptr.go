@@ -53,6 +53,9 @@ func (c *Context) Unmarshal(path string, value interface{}) error {
 	return nil
 }
 
+// Parse parses the JSON data and returns a Context object. The Context
+// object can be used to retrieve values from the JSON data. Once parsed,
+// the given `[]byte` should not be modified.
 func Parse(data []byte) (*Context, error) {
 	dec := json.NewDecoder(bytes.NewReader(data))
 	c := &Context{
@@ -65,6 +68,10 @@ func Parse(data []byte) (*Context, error) {
 	return c, nil
 }
 
+// The goal for this parsing is to find values that can be referenced by
+// a JSON Pointer, and to record the offset of the value in the original
+// JSON data. The offset is used to retrieve the value when the user
+// calls Get() or Unmarshal().
 func parse(c *Context, dec *json.Decoder, path string) error {
 	pos := dec.InputOffset()
 	// pos is at ":", so we need to move the position to
